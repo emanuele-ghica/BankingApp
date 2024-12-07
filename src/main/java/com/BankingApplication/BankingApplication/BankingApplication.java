@@ -1,5 +1,6 @@
 package com.BankingApplication.BankingApplication;
 
+import com.BankingApplication.BankingApplication.services.BalanceService;
 import com.BankingApplication.BankingApplication.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -11,15 +12,11 @@ import java.util.Scanner;
 @SpringBootApplication
 public class BankingApplication implements CommandLineRunner {
 
-
-	private final UserService userService;
-
-	private String token;
-
 	@Autowired
-    public BankingApplication(UserService userService) {
-        this.userService = userService;
-    }
+	private  UserService userService;
+	@Autowired
+	private BalanceService balanceService;
+	private String token;
 
     public static void main(String[] args) {
 		SpringApplication.run(BankingApplication.class, args);
@@ -45,7 +42,7 @@ public class BankingApplication implements CommandLineRunner {
 		System.out.print("Choose an option: ");
 
 		int choice = scanner.nextInt();
-		scanner.nextLine(); // Consume newline character
+		scanner.nextLine();
 
 		switch (choice) {
 			case 1 -> register(scanner);
@@ -64,7 +61,7 @@ public class BankingApplication implements CommandLineRunner {
 		System.out.print("Choose an option: ");
 
 		int choice = scanner.nextInt();
-		scanner.nextLine(); // Consume newline character
+		scanner.nextLine();
 
 		switch (choice) {
 			case 1 -> addMoney(scanner);
@@ -112,7 +109,7 @@ public class BankingApplication implements CommandLineRunner {
 		double amount = scanner.nextDouble();
 
 		try {
-			userService.addMoney(token, amount);
+			balanceService.addMoney(token, amount);
 			System.out.println("Money added successfully!");
 		} catch (IllegalArgumentException e) {
 			System.out.println("Error: " + e.getMessage());
@@ -124,7 +121,7 @@ public class BankingApplication implements CommandLineRunner {
 		double amount = scanner.nextDouble();
 
 		try {
-			userService.withdrawMoney(token, amount);
+			balanceService.withdrawMoney(token, amount);
 			System.out.println("Money withdrawn successfully!");
 		} catch (IllegalArgumentException e) {
 			System.out.println("Error: " + e.getMessage());
@@ -138,7 +135,7 @@ public class BankingApplication implements CommandLineRunner {
 		double amount = scanner.nextDouble();
 
 		try {
-			userService.transferMoney(token, recipientEmail, amount);
+			balanceService.transferMoney(token, recipientEmail, amount);
 			System.out.println("Money transferred successfully!");
 		} catch (IllegalArgumentException e) {
 			System.out.println("Error: " + e.getMessage());
@@ -147,7 +144,7 @@ public class BankingApplication implements CommandLineRunner {
 
 	private void checkBalance() {
 		try {
-			userService.checkBalance(token);
+			balanceService.checkBalance(token);
 		} catch (IllegalArgumentException e) {
 			System.out.println("Error: " + e.getMessage());
 		}
@@ -156,7 +153,7 @@ public class BankingApplication implements CommandLineRunner {
 	private void logout() {
 		try {
 			userService.logout(token);
-			token = null; // Clear token on logout
+			token = null;
 			System.out.println("Logout successful!");
 		} catch (IllegalArgumentException e) {
 			System.out.println("Error: " + e.getMessage());
@@ -164,7 +161,7 @@ public class BankingApplication implements CommandLineRunner {
 	}
 
 	private void exitApplication() {
-		System.out.println("Thank you for using the Banking App. Goodbye!");
+		System.out.println("Goodbye!");
 		System.exit(0);
 	}
 }
