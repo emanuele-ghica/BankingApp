@@ -17,8 +17,8 @@ public class User {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false, length = 4)
-    private String pin;
+    @Column(nullable = false)
+    private String password;
 
     @Column(nullable = false)
     private double balance;
@@ -39,12 +39,12 @@ public class User {
         this.name = name;
     }
 
-    public String getPin() {
-        return pin;
+    public String getPassword() {
+        return password;
     }
 
-    public void setPin(String pin) {
-        this.pin = pin;
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public double getBalance() {

@@ -1,6 +1,5 @@
 package com.BankingApplication.BankingApplication;
 
-import com.BankingApplication.BankingApplication.models.User;
 import com.BankingApplication.BankingApplication.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -12,101 +11,120 @@ import java.util.Scanner;
 @SpringBootApplication
 public class BankingApplication implements CommandLineRunner {
 
+
+	private final UserService userService;
+
+	private String token;
+
 	@Autowired
-	private UserService userService;
+    public BankingApplication(UserService userService) {
+        this.userService = userService;
+    }
 
-	private User loggedInUser = null;
-
-	public static void main(String[] args) {
+    public static void main(String[] args) {
 		SpringApplication.run(BankingApplication.class, args);
 	}
 
 	public void run(String[] args) {
 		Scanner scanner = new Scanner(System.in);
 
-		while(true) {
-			if(loggedInUser == null) {
-				System.out.println("Welcome to the Banking App");
-				System.out.println("1. Register");
-				System.out.println("2. Login");
-				System.out.println("3. Exit");
-				int choice = scanner.nextInt();
-				scanner.nextLine();
-
-				switch (choice) {
-					case 1 -> register(scanner);
-					case 2 -> login(scanner);
-					case 3 -> {
-						System.out.println("Goodbye!");
-						return;
-					}
-					default -> System.out.println("Invalid choice.");
-				}
+		while (true) {
+			if (token == null) {
+				showInitialMenu(scanner);
 			} else {
-				System.out.println("Welcome, " + loggedInUser.getName());
-				System.out.println("1. Add Money");
-				System.out.println("2. Withdraw Money");
-				System.out.println("3. Transfer Money");
-				System.out.println("4. Check Balance");
-				System.out.println("5. Logout");
-				int choice = scanner.nextInt();
-				scanner.nextLine();
-
-				switch (choice) {
-					case 1 -> addMoney(scanner);
-					case 2 -> withdrawMoney(scanner);
-					case 3 -> transferMoney(scanner);
-					case 4 -> checkBalance();
-					case 5 -> loggedInUser = null;
-					default -> System.out.println("Invalid choice.");
-				}
+				showUserMenu(scanner);
 			}
 		}
 	}
 
+	private void showInitialMenu(Scanner scanner) {
+		System.out.println("\nWelcome to the Banking App");
+		System.out.println("1. Register");
+		System.out.println("2. Login");
+		System.out.println("3. Exit");
+		System.out.print("Choose an option: ");
+
+		int choice = scanner.nextInt();
+		scanner.nextLine(); // Consume newline character
+
+		switch (choice) {
+			case 1 -> register(scanner);
+			case 2 -> login(scanner);
+			case 3 -> exitApplication();
+			default -> System.out.println("Invalid choice. Please try again.");
+		}
+	}
+
+	private void showUserMenu(Scanner scanner) {
+		System.out.println("\n1. Add Money");
+		System.out.println("2. Withdraw Money");
+		System.out.println("3. Transfer Money");
+		System.out.println("4. Check Balance");
+		System.out.println("5. Logout");
+		System.out.print("Choose an option: ");
+
+		int choice = scanner.nextInt();
+		scanner.nextLine(); // Consume newline character
+
+		switch (choice) {
+			case 1 -> addMoney(scanner);
+			case 2 -> withdrawMoney(scanner);
+			case 3 -> transferMoney(scanner);
+			case 4 -> checkBalance();
+			case 5 -> logout();
+			default -> System.out.println("Invalid choice. Please try again.");
+		}
+	}
+
+
 	private void register(Scanner scanner) {
-		System.out.println("Enter your name:");
+		System.out.print("Enter your name: ");
 		String name = scanner.nextLine();
-		System.out.println("Enter your email:");
+		System.out.print("Enter your email: ");
 		String email = scanner.nextLine();
-		System.out.println("Enter a PIN:");
+		System.out.print("Enter a PIN: ");
 		String pin = scanner.nextLine();
 
 		try {
-			loggedInUser = userService.registerUser(name, email, pin);
-			System.out.println("Registration successful!");
+			token = userService.registerUser(name, email, pin);
+			System.out.println("Registration successful! Your token: " + token);
 		} catch (IllegalArgumentException e) {
 			System.out.println("Error: " + e.getMessage());
 		}
 	}
 
 	private void login(Scanner scanner) {
-		System.out.println("Enter your email:");
+		System.out.print("Enter your email: ");
 		String email = scanner.nextLine();
-		System.out.println("Enter your PIN:");
+		System.out.print("Enter your PIN: ");
 		String pin = scanner.nextLine();
 
 		try {
-			loggedInUser = userService.loginUser(email, pin);
-			System.out.println("Login successful!");
+			token = userService.loginUser(email, pin);
+			System.out.println("Login successful! Your token: " + token);
 		} catch (IllegalArgumentException e) {
 			System.out.println("Error: " + e.getMessage());
 		}
 	}
 
 	private void addMoney(Scanner scanner) {
-		System.out.println("Enter amount to add:");
-		double amount = scanner.nextDouble();
-		userService.addMoney(loggedInUser, amount);
-		System.out.println("Money added successfully!");
-	}
-
-	private void withdrawMoney(Scanner scanner) {
-		System.out.println("Enter amount to withdraw:");
+		System.out.print("Enter amount to add: ");
 		double amount = scanner.nextDouble();
 
 		try {
-			userService.withdrawMoney(loggedInUser, amount);
+			userService.addMoney(token, amount);
+			System.out.println("Money added successfully!");
+		} catch (IllegalArgumentException e) {
+			System.out.println("Error: " + e.getMessage());
+		}
+	}
+
+	private void withdrawMoney(Scanner scanner) {
+		System.out.print("Enter amount to withdraw: ");
+		double amount = scanner.nextDouble();
+
+		try {
+			userService.withdrawMoney(token, amount);
 			System.out.println("Money withdrawn successfully!");
 		} catch (IllegalArgumentException e) {
 			System.out.println("Error: " + e.getMessage());
@@ -114,13 +132,13 @@ public class BankingApplication implements CommandLineRunner {
 	}
 
 	private void transferMoney(Scanner scanner) {
-		System.out.println("Enter recipient's email:");
+		System.out.print("Enter recipient's email: ");
 		String recipientEmail = scanner.nextLine();
-		System.out.println("Enter amount to transfer:");
+		System.out.print("Enter amount to transfer: ");
 		double amount = scanner.nextDouble();
 
 		try {
-			userService.transferMoney(loggedInUser, recipientEmail, amount);
+			userService.transferMoney(token, recipientEmail, amount);
 			System.out.println("Money transferred successfully!");
 		} catch (IllegalArgumentException e) {
 			System.out.println("Error: " + e.getMessage());
@@ -129,10 +147,26 @@ public class BankingApplication implements CommandLineRunner {
 
 	private void checkBalance() {
 		try {
-			userService.checkBalance(loggedInUser);
+			userService.checkBalance(token);
 		} catch (IllegalArgumentException e) {
 			System.out.println("Error: " + e.getMessage());
 		}
 	}
 
+	private void logout() {
+		try {
+			userService.logout(token);
+			token = null; // Clear token on logout
+			System.out.println("Logout successful!");
+		} catch (IllegalArgumentException e) {
+			System.out.println("Error: " + e.getMessage());
+		}
+	}
+
+	private void exitApplication() {
+		System.out.println("Thank you for using the Banking App. Goodbye!");
+		System.exit(0);
+	}
 }
+
+
